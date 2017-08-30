@@ -1,3 +1,4 @@
+import systex.s7Comm.s7CommLink;
 import systex.s7Comm.util.NumericalUtil;
 
 public class S7commTest {
@@ -9,6 +10,7 @@ public class S7commTest {
 
 		byte[] b = NumericalUtil.hexToByte(new String[]{"02" , "f0", "80"});
 		String[] str = NumericalUtil.byteToHex(b);
+		
 	}
 	
 }

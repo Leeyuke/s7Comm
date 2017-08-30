@@ -48,6 +48,17 @@ public class NumericalUtil {
 	}  
 	
 	 private static byte charToByte(char c) {  
-		    return (byte) "0123456789ABCDEF".indexOf(c);  
-		}
+	    return (byte) "0123456789ABCDEF".indexOf(c);  
+	}
+
+	 
+	 public static byte[] getBytes(int s) {  
+        byte[] buf = new byte[4];  
+        for (int i = 0; i < buf.length; i++) {  
+        	buf[i] = (byte) (s & 0x000000ff);  
+        	s >>= 8;  
+        } 
+        return buf;  
+	 }
+	 
 }
