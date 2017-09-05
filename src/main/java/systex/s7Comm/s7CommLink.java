@@ -36,6 +36,12 @@ public class s7CommLink {
 	private byte[] S7COMMDBDATA = {0x03, 0x00, 0x00, 0x1f, 0x02, (byte) 0xf0, (byte) 0x80, 0x32, 0x01, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x0e, 0x00, 0x00, 0x04, 0x01, 
 			0x12, 0x0a, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, (byte) 0x84, 0x00, 0x00, 0x00};
+	/**
+	 * 上位机发送查询MR内存块数据到下位机
+	 */
+	private byte[] S7COMMMRDATA = {0x03, 0x00, 0x00, 0x1f, 0x02, (byte) 0xf0, (byte) 0x80, 0x32, 0x01, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x0e, 0x00, 0x00, 0x04, 0x01, 
+			0x12, 0x0a, 0x10, 0x02, 0x00, 0x00, 0x00, 0x00, (byte) 0x83, 0x00, 0x00, 0x00};
 	
 	/**
 	 * error class 字段在S7Comm连接请求返回的byte数组的所在位置
@@ -139,40 +145,48 @@ public class s7CommLink {
 	 * @return 读取到的byte数据
 	 */
 	public byte[] dataRead(int db, int count, int addr) {
+
+		byte[] readS7CommData = new byte[0];
+		
 		//对db块超过255时候的判断
 		if(db > 255) {
+			readS7CommData = S7COMMDBDATA;
 			int db_high = db/255;
 			int db_low = db%255;
-			S7COMMDBDATA[DBNumber[0] - 1] = (byte) db_high;	//赋值给db字段的高地址
-			S7COMMDBDATA[DBNumber[1] - 1] = (byte) db_low;	//赋值给db字段的低地址
+			readS7CommData[DBNumber[0] - 1] = (byte) db_high;	//赋值给db字段的高地址
+			readS7CommData[DBNumber[1] - 1] = (byte) db_low;	//赋值给db字段的低地址
+		}
+		else if(db == 0) {
+			readS7CommData = S7COMMMRDATA;
 		}
 		else {
-			S7COMMDBDATA[DBNumber[1] - 1] = (byte) db;	//赋值给db字段的低地址
+			readS7CommData = S7COMMDBDATA;
+			readS7CommData[DBNumber[1] - 1] = (byte) db;	//赋值给db字段的低地址
 		}
 		//对读取数量超过255时候的判断
 		if(count > 255) {
 			int count_high = count/255;
 			int count_low = count%255;
-			S7COMMDBDATA[DATALength[0] - 1] = (byte) count_high;	//赋值给count字段的高地址
-			S7COMMDBDATA[DATALength[1] - 1] = (byte) count_low;		//赋值给count字段的低地址
+			readS7CommData[DATALength[0] - 1] = (byte) count_high;	//赋值给count字段的高地址
+			readS7CommData[DATALength[1] - 1] = (byte) count_low;		//赋值给count字段的低地址
 		}
 		else {
-			S7COMMDBDATA[DATALength[1] - 1] = (byte) count;	//赋值给count字段的低地址
+			readS7CommData[DATALength[1] - 1] = (byte) count;	//赋值给count字段的低地址
 		}
 		//对偏移地址超过255时候的判断
 		if(addr > 255) {
 			int addr_high = addr/255;
 			int add_low = addr%255;
-			S7COMMDBDATA[DATAAddr[1] - 1] = (byte) addr_high;	//赋值给address字段的中地址
-			S7COMMDBDATA[DATAAddr[2] - 1] = (byte) add_low;		//赋值给address字段的低地址
+			readS7CommData[DATAAddr[1] - 1] = (byte) addr_high;	//赋值给address字段的中地址
+			readS7CommData[DATAAddr[2] - 1] = (byte) add_low;		//赋值给address字段的低地址
 		}
 		else {
-			S7COMMDBDATA[DATAAddr[2] - 1] = (byte) addr;	//赋值给address字段的低地址
+			readS7CommData[DATAAddr[2] - 1] = (byte) addr;	//赋值给address字段的低地址
 		}
 		if(socket == null) {
 			return null;
 		}
-		byte[] receviedCOTPLink = PLCUtil.sendToPLC(socket, RECEIVED_WITHOUT_DATA_LENGTH + count, S7COMMDBDATA);
+		byte[] receviedCOTPLink = PLCUtil.sendToPLC(socket, RECEIVED_WITHOUT_DATA_LENGTH + count, readS7CommData);
 		
 		byte errorClass = receviedCOTPLink[ErrorClassNumber - 1];		//得到ErrorClass字段的值
 		byte errorCode = receviedCOTPLink[ErrorCodeNumber - 1];		//得到ErrorCode字段的值
